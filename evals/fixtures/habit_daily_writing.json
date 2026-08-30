@@ -1,0 +1,29 @@
+{
+  "id": "habit_daily_writing",
+  "domain": "habit",
+  "input": "I want to write every morning but I have failed at this three times. Each attempt lasted about two weeks. Mornings are the only quiet time I have.",
+  "expected_forks": [
+    "full",
+    "partial",
+    "trial",
+    "skip",
+    "evening",
+    "weekly"
+  ],
+  "expected_domain": "habit",
+  "required_constraints": [],
+  "expected_facts": [
+    "three times",
+    "two weeks",
+    "mornings"
+  ],
+  "must_not_hallucinate": [
+    "what they write",
+    "wake time",
+    "job",
+    "reason for failure"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Three attempts at a morning writing habit, each lasting roughly a fortnight. Mornings are my only quiet hours.",
+  "notes": "Domain rule: never claim a habit guarantees an outcome."
+}

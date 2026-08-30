@@ -1,0 +1,30 @@
+{
+  "id": "software_rewrite_or_patch",
+  "domain": "software",
+  "input": "The payments module was written by someone who left two years ago. It has no tests and it breaks roughly once a month. A rewrite would take an estimated six weeks.",
+  "expected_forks": [
+    "rewrite",
+    "patch",
+    "test",
+    "strangle",
+    "incremental",
+    "keep"
+  ],
+  "expected_domain": "software",
+  "required_constraints": [],
+  "expected_facts": [
+    "two years ago",
+    "no tests",
+    "once a month",
+    "six weeks"
+  ],
+  "must_not_hallucinate": [
+    "payment provider",
+    "transaction volume",
+    "team size",
+    "language"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Our payments code came from a developer who left two years back. Zero tests, a breakage about monthly, and a rewrite is estimated at six weeks.",
+  "notes": "Six weeks is an estimate the user supplied - grounded as a claim, not as fact about the future."
+}

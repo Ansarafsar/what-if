@@ -1,0 +1,31 @@
+{
+  "id": "purchase_car_vs_transit",
+  "domain": "purchase",
+  "input": "My commute is 50 minutes each way by bus. A car would cut it to 25 but I would take on a loan and parking costs. I work from home two days a week.",
+  "expected_forks": [
+    "buy",
+    "keep",
+    "used",
+    "rideshare",
+    "wait",
+    "lease"
+  ],
+  "expected_domain": "purchase",
+  "required_constraints": [],
+  "expected_facts": [
+    "50 minutes",
+    "25",
+    "loan",
+    "two days"
+  ],
+  "must_not_hallucinate": [
+    "car price",
+    "loan rate",
+    "fuel cost",
+    "parking cost",
+    "city"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Bus commute is 50 minutes door to door; driving would halve it to 25. But that means a loan plus parking. I'm remote two days a week.",
+  "notes": "Weekly hours saved are derivable from the stated figures; costs are not."
+}

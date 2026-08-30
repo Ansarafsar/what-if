@@ -1,0 +1,58 @@
+name: what-if
+
+services:
+  whatif-db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-whatif}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-whatif}
+      POSTGRES_DB: ${POSTGRES_DB:-whatif}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-whatif} -d ${POSTGRES_DB:-whatif}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  whatif-api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: docker
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-whatif}:${POSTGRES_PASSWORD:-whatif}@whatif-db:5432/${POSTGRES_DB:-whatif}
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_MODEL: ${LLM_MODEL:-deepseek/deepseek-chat-v3-0324:free}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      whatif-db:
+        condition: service_healthy
+
+  # Deferred infrastructure (future phases):
+  #   whatif-redis   - caching / orchestration state (Phase 2+)
+  #   whatif-worker  - background jobs (later phase)
+
+  whatif-web:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - whatif-api
+
+volumes:
+  pgdata:

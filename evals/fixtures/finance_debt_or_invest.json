@@ -1,0 +1,29 @@
+{
+  "id": "finance_debt_or_invest",
+  "domain": "finance",
+  "input": "I have a student loan at 9% and about eight months of expenses saved. I could put my monthly surplus toward the loan or into index funds.",
+  "expected_forks": [
+    "repay",
+    "invest",
+    "split",
+    "save",
+    "hybrid"
+  ],
+  "expected_domain": "finance",
+  "required_constraints": [],
+  "expected_facts": [
+    "9%",
+    "eight months",
+    "index funds"
+  ],
+  "must_not_hallucinate": [
+    "loan balance",
+    "income",
+    "market return",
+    "tax rate",
+    "surplus amount"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Student debt at 9 percent, an emergency fund covering eight months, and spare cash each month. Pay down the loan or buy index funds?",
+  "notes": "Domain rule: arithmetic must show its inputs; no assumed market return."
+}

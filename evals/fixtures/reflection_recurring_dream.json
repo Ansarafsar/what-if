@@ -1,0 +1,28 @@
+{
+  "id": "reflection_recurring_dream",
+  "domain": "reflection",
+  "input": "I keep dreaming that I am back at my old school and cannot find the exam room. It started around the time I changed jobs.",
+  "expected_forks": [
+    "interpretation",
+    "no meaning",
+    "transition",
+    "anxiety",
+    "resonate"
+  ],
+  "expected_domain": "reflection",
+  "required_constraints": [],
+  "expected_facts": [
+    "old school",
+    "exam room",
+    "changed jobs"
+  ],
+  "must_not_hallucinate": [
+    "what the dream means",
+    "diagnosis",
+    "childhood events",
+    "job details"
+  ],
+  "min_branches": 3,
+  "reworded_input": "A dream keeps repeating: I'm at my old school, lost, looking for the exam hall. It began when I switched jobs.",
+  "notes": "Domain rule: never state 'your dream means X'; must include the possibility of no meaning."
+}

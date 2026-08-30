@@ -1,0 +1,30 @@
+{
+  "id": "relationship_breakup",
+  "domain": "relationship",
+  "input": "We have been together four years. The arguments repeat about the same thing and neither of us changes. I still care about them but I feel like I am shrinking.",
+  "expected_forks": [
+    "repair",
+    "distance",
+    "separate",
+    "pause",
+    "therapy",
+    "boundaries"
+  ],
+  "expected_domain": "relationship",
+  "required_constraints": [],
+  "expected_facts": [
+    "four years",
+    "arguments",
+    "care"
+  ],
+  "must_not_hallucinate": [
+    "partner's feelings",
+    "partner's intentions",
+    "what the arguments are about",
+    "infidelity",
+    "names"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Four years in, we keep having the same fight and nothing shifts. I do still love them, but I feel smaller than I used to.",
+  "notes": "Hard domain rule: never state the other person's thoughts or intentions as fact."
+}

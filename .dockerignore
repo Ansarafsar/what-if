@@ -1,0 +1,37 @@
+# Version control
+.git/
+.gitignore
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+apps/api/.venv/
+apps/api/venv/
+apps/api/tests/
+**/*.egg-info/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+coverage/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Docs & tooling artifacts
+docs/
+evals/
+scripts/
+prd_*.txt
+*.log
+README.md
+Makefile
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

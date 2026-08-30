@@ -1,0 +1,29 @@
+{
+  "id": "business_pricing_change",
+  "domain": "business",
+  "input": "We charge a flat 20 dollars a month. Larger customers keep asking for features that cost us more to serve. We have 300 customers and no pricing tiers.",
+  "expected_forks": [
+    "tier",
+    "raise",
+    "keep",
+    "usage",
+    "enterprise",
+    "pricing"
+  ],
+  "expected_domain": "business",
+  "required_constraints": [],
+  "expected_facts": [
+    "20 dollars",
+    "300 customers",
+    "no pricing tiers"
+  ],
+  "must_not_hallucinate": [
+    "churn rate",
+    "margin",
+    "competitor pricing",
+    "cost to serve"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Flat $20/month, 300 customers, one tier. Our bigger accounts want features that are expensive for us to run.",
+  "notes": "Only the price and customer count are grounded."
+}

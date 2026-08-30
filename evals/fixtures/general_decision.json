@@ -1,0 +1,29 @@
+{
+  "id": "general_decision",
+  "domain": "general",
+  "input": "I have been offered a place on a two-year part-time course. It runs on weekends, which is when I currently see friends and rest. I am not certain it will change my work.",
+  "expected_forks": [
+    "enrol",
+    "decline",
+    "defer",
+    "part",
+    "trial"
+  ],
+  "expected_domain": "general",
+  "required_constraints": [],
+  "expected_facts": [
+    "two-year",
+    "part-time",
+    "weekends",
+    "not certain"
+  ],
+  "must_not_hallucinate": [
+    "course subject",
+    "cost",
+    "job",
+    "friend group size"
+  ],
+  "min_branches": 3,
+  "reworded_input": "There's a spot for me on a two-year weekend course. Weekends are currently for friends and recovery, and I can't say whether it would move my career.",
+  "notes": "Deliberately underspecified - tests that missing information is surfaced rather than filled in."
+}

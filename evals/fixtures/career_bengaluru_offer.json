@@ -1,0 +1,33 @@
+{
+  "id": "career_bengaluru_offer",
+  "domain": "career",
+  "input": "I got a job offer in Bengaluru. I currently live with my parents, I'm comfortable with my current job, I have a relationship here, and I've always wanted to build a startup. The new job pays 40% more.",
+  "expected_forks": [
+    "accept",
+    "reject",
+    "negotiate",
+    "delay",
+    "remote",
+    "relocat",
+    "offer"
+  ],
+  "expected_domain": "career",
+  "required_constraints": [],
+  "expected_facts": [
+    "40%",
+    "parents",
+    "relationship",
+    "startup"
+  ],
+  "must_not_hallucinate": [
+    "rent",
+    "notice period",
+    "company name",
+    "partner's name",
+    "years of experience",
+    "current salary"
+  ],
+  "min_branches": 3,
+  "reworded_input": "A company in Bengaluru offered me a role at 40% above my current pay. Right now I live at home with my parents, I like my job well enough, my partner is in this city, and starting my own company has always been the plan.",
+  "notes": "Flagship scenario. The percentage is grounded; the absolute salary is not."
+}

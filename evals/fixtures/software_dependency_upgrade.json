@@ -1,0 +1,30 @@
+{
+  "id": "software_dependency_upgrade",
+  "domain": "software",
+  "input": "Our framework's major version reaches end of life in four months. The upgrade has breaking changes across our routing layer and we ship weekly.",
+  "expected_forks": [
+    "upgrade",
+    "delay",
+    "fork",
+    "incremental",
+    "migrate",
+    "freeze"
+  ],
+  "expected_domain": "software",
+  "required_constraints": [],
+  "expected_facts": [
+    "four months",
+    "end of life",
+    "breaking changes",
+    "weekly"
+  ],
+  "must_not_hallucinate": [
+    "framework name",
+    "version number",
+    "number of routes",
+    "team size"
+  ],
+  "min_branches": 3,
+  "reworded_input": "The major version of the framework we use goes EOL in four months. Upgrading breaks our routing layer, and we release every week.",
+  "notes": "The framework is never named. Naming one is the classic hallucination here."
+}

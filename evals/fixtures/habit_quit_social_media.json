@@ -1,0 +1,28 @@
+{
+  "id": "habit_quit_social_media",
+  "domain": "habit",
+  "input": "I spend about three hours a day on social media and it is where most of my freelance leads come from. I want that time back.",
+  "expected_forks": [
+    "quit",
+    "limit",
+    "schedule",
+    "delegate",
+    "keep",
+    "trial"
+  ],
+  "expected_domain": "habit",
+  "required_constraints": [],
+  "expected_facts": [
+    "three hours",
+    "freelance leads"
+  ],
+  "must_not_hallucinate": [
+    "platform names",
+    "lead count",
+    "income",
+    "follower count"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Roughly three hours daily on social platforms, which is also where nearly all my freelance work originates. I'd like those hours back.",
+  "notes": "The tension is that the habit has a real benefit; branches must acknowledge the trade."
+}

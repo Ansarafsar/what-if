@@ -1,0 +1,32 @@
+{
+  "id": "business_launch",
+  "domain": "business",
+  "input": "Our beta has 40 users, 6 of whom pay. We have 9 months of runway and two founders. We are debating a public launch now or three more months of building.",
+  "expected_forks": [
+    "launch",
+    "wait",
+    "pivot",
+    "build",
+    "beta"
+  ],
+  "expected_domain": "business",
+  "required_constraints": [
+    "runway_months"
+  ],
+  "expected_facts": [
+    "40 users",
+    "6",
+    "9 months",
+    "two founders"
+  ],
+  "must_not_hallucinate": [
+    "revenue figure",
+    "market size",
+    "growth rate",
+    "CAC",
+    "valuation"
+  ],
+  "min_branches": 3,
+  "reworded_input": "We're two founders with a beta: 40 signed up, 6 paying, and nine months of cash left. Launch publicly now, or spend another quarter building?",
+  "notes": "Domain rule: no invented arithmetic. Conversion is 6/40 and derivable; CAC is not."
+}

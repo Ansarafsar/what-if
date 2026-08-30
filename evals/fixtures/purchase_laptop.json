@@ -1,0 +1,30 @@
+{
+  "id": "purchase_laptop",
+  "domain": "purchase",
+  "input": "My five-year-old laptop is slow for the video work I do about ten hours a week. A new one is roughly three months of my savings rate. The old one still works for everything else.",
+  "expected_forks": [
+    "buy",
+    "wait",
+    "used",
+    "repair",
+    "upgrade",
+    "rent"
+  ],
+  "expected_domain": "purchase",
+  "required_constraints": [],
+  "expected_facts": [
+    "five-year-old",
+    "ten hours",
+    "three months",
+    "still works"
+  ],
+  "must_not_hallucinate": [
+    "laptop model",
+    "price",
+    "specifications",
+    "savings amount"
+  ],
+  "min_branches": 3,
+  "reworded_input": "The laptop I've had five years struggles with the ten hours of video editing I do weekly. Replacing it costs about three months of what I save. It's otherwise fine.",
+  "notes": "Domain rule: never invent product specs or prices."
+}

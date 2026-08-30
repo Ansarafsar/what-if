@@ -1,0 +1,31 @@
+{
+  "id": "career_quit_to_freelance",
+  "domain": "career",
+  "input": "I've been a salaried backend developer for six years. I have eleven months of savings, two long-term clients who have asked me to freelance for them, and a mortgage. I keep thinking about handing in my notice.",
+  "expected_forks": [
+    "quit",
+    "freelance",
+    "stay",
+    "part-time",
+    "notice",
+    "transition"
+  ],
+  "expected_domain": "career",
+  "required_constraints": [],
+  "expected_facts": [
+    "six years",
+    "eleven months",
+    "two",
+    "mortgage"
+  ],
+  "must_not_hallucinate": [
+    "mortgage amount",
+    "salary",
+    "client rates",
+    "city",
+    "family size"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Six years into a salaried backend job, I'm sitting on eleven months of runway, two clients who want to hire me directly, and a mortgage. Quitting is on my mind.",
+  "notes": "Runway is grounded in months, not currency; a branch quoting a rupee figure is hallucinating."
+}

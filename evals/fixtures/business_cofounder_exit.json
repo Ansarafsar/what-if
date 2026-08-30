@@ -1,0 +1,30 @@
+{
+  "id": "business_cofounder_exit",
+  "domain": "business",
+  "input": "My cofounder wants to leave after 18 months. We split equity 50/50 with a four-year vest. The product has paying customers.",
+  "expected_forks": [
+    "buyout",
+    "renegotiate",
+    "vest",
+    "continue",
+    "wind down",
+    "hire"
+  ],
+  "expected_domain": "business",
+  "required_constraints": [],
+  "expected_facts": [
+    "18 months",
+    "50/50",
+    "four-year",
+    "paying customers"
+  ],
+  "must_not_hallucinate": [
+    "revenue",
+    "cofounder's reason",
+    "customer count",
+    "cliff terms"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Eighteen months in, my 50/50 cofounder on a four-year vest says they're out. We do have paying customers.",
+  "notes": "Vested fraction is derivable (18/48); anything about intent is not."
+}

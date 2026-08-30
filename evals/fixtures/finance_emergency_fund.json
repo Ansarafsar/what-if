@@ -1,0 +1,29 @@
+{
+  "id": "finance_emergency_fund",
+  "domain": "finance",
+  "input": "I have two months of expenses saved and my industry has been laying people off. I also have a wedding to pay for in seven months.",
+  "expected_forks": [
+    "save",
+    "cut",
+    "delay",
+    "borrow",
+    "prioritise",
+    "insure"
+  ],
+  "expected_domain": "finance",
+  "required_constraints": [],
+  "expected_facts": [
+    "two months",
+    "laying people off",
+    "seven months"
+  ],
+  "must_not_hallucinate": [
+    "wedding cost",
+    "salary",
+    "industry name",
+    "layoff probability"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Only two months of expenses in the bank, redundancies happening across my sector, and a wedding to fund in seven months.",
+  "notes": "Layoff probability is unknowable and must not be quantified."
+}

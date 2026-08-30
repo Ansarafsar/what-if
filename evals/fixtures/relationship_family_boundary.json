@@ -1,0 +1,29 @@
+{
+  "id": "relationship_family_boundary",
+  "domain": "relationship",
+  "input": "My mother calls every day and gets upset when I do not answer. I want less contact without hurting her.",
+  "expected_forks": [
+    "boundary",
+    "conversation",
+    "reduce",
+    "schedule",
+    "accept",
+    "distance"
+  ],
+  "expected_domain": "relationship",
+  "required_constraints": [],
+  "expected_facts": [
+    "every day",
+    "upset",
+    "less contact"
+  ],
+  "must_not_hallucinate": [
+    "mother's diagnosis",
+    "mother's motives",
+    "living arrangement",
+    "sibling"
+  ],
+  "min_branches": 3,
+  "reworded_input": "Daily calls from my mum, and she takes it badly if I miss one. I'd like more space but I don't want to wound her.",
+  "notes": "Motives must be framed as possibilities, never asserted."
+}

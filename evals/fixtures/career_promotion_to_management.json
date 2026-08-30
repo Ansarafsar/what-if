@@ -1,0 +1,29 @@
+{
+  "id": "career_promotion_to_management",
+  "domain": "career",
+  "input": "My manager offered me a team lead role. It comes with a small raise but I would stop writing code most days. I enjoy the technical work and I am not sure I want to manage people.",
+  "expected_forks": [
+    "accept",
+    "decline",
+    "trial",
+    "negotiate",
+    "lead",
+    "manage"
+  ],
+  "expected_domain": "career",
+  "required_constraints": [],
+  "expected_facts": [
+    "team lead",
+    "small raise",
+    "manage"
+  ],
+  "must_not_hallucinate": [
+    "team size",
+    "raise amount",
+    "company",
+    "tenure"
+  ],
+  "min_branches": 3,
+  "reworded_input": "I've been offered a team lead position by my manager. Slightly more money, but far less hands-on coding. I like building things and I'm unsure about managing.",
+  "notes": "The raise is qualitative ('small'); no number was given."
+}

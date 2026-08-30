@@ -1,0 +1,30 @@
+{
+  "id": "git_architecture_decision",
+  "domain": "software",
+  "input": "Our monolith takes 40 minutes to run its test suite and three teams block on it daily. Someone proposed splitting it into services. We have no dedicated platform team.",
+  "expected_forks": [
+    "split",
+    "keep",
+    "refactor",
+    "modular",
+    "extract",
+    "incremental"
+  ],
+  "expected_domain": "software",
+  "required_constraints": [],
+  "expected_facts": [
+    "40 minutes",
+    "three teams",
+    "no dedicated platform team"
+  ],
+  "must_not_hallucinate": [
+    "language",
+    "cloud provider",
+    "service count",
+    "line count",
+    "framework"
+  ],
+  "min_branches": 3,
+  "reworded_input": "One monolith, a 40-minute test run, three teams stepping on each other every day, and no platform team. There's a proposal to break it into services.",
+  "notes": "Domain rule: future architecture is SPECULATIVE, never GROUNDED."
+}

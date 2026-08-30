@@ -1,0 +1,29 @@
+{
+  "id": "relationship_long_distance",
+  "domain": "relationship",
+  "input": "My partner is moving to another city for a two-year programme. We have not talked about whether we stay together through it.",
+  "expected_forks": [
+    "stay together",
+    "open",
+    "end",
+    "move",
+    "visit",
+    "wait"
+  ],
+  "expected_domain": "relationship",
+  "required_constraints": [],
+  "expected_facts": [
+    "two-year",
+    "another city",
+    "not talked"
+  ],
+  "must_not_hallucinate": [
+    "partner's preference",
+    "the cities",
+    "the programme",
+    "relationship length"
+  ],
+  "min_branches": 3,
+  "reworded_input": "My partner starts a two-year course in a different city soon. We still haven't discussed what happens to us.",
+  "notes": "The partner's own preference is unstated and must stay UNKNOWN."
+}

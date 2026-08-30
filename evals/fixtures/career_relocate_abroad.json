@@ -1,0 +1,29 @@
+{
+  "id": "career_relocate_abroad",
+  "domain": "career",
+  "input": "A company abroad wants to sponsor my visa. My parents are getting older and I am the only child. The role is a clear step up in seniority.",
+  "expected_forks": [
+    "accept",
+    "decline",
+    "delay",
+    "visa",
+    "relocat",
+    "remote"
+  ],
+  "expected_domain": "career",
+  "required_constraints": [],
+  "expected_facts": [
+    "visa",
+    "only child",
+    "seniority"
+  ],
+  "must_not_hallucinate": [
+    "country",
+    "parents' health condition",
+    "salary",
+    "visa duration"
+  ],
+  "min_branches": 3,
+  "reworded_input": "An overseas employer has offered visa sponsorship and a more senior title. I'm an only child and my parents are ageing.",
+  "notes": "The country is never stated. Naming one is a hallucination."
+}
