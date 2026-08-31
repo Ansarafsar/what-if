@@ -3,10 +3,11 @@ name: Deploy docs site
 on:
   push:
     branches: [main]
-    paths:
-      - "site/**"
-      - ".github/workflows/pages.yml"
-  # Allows a manual redeploy without pushing.
+    # No paths filter. A filter here strands the very first deploy: until Pages
+    # is switched to the "GitHub Actions" source in repo settings, deploy-pages
+    # cannot publish, and afterwards nothing retriggers it while site/ is
+    # unchanged. Deploying a static folder on every push to main is cheap.
+  # Allows a redeploy without pushing - use this right after enabling Pages.
   workflow_dispatch:
 
 # Pages needs these to publish; the token is otherwise read-only.
@@ -31,8 +32,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify the site has its entry point
-        run: test -f site/index.html
+      # Publishing the wrong directory is the failure mode worth catching here:
+      # the Next.js app in apps/web is a server app, not a static export, so if
+      # it ever reached Pages the result would be a broken site rather than an
+      # error. Assert we are shipping the hand-written docs site.
+      - name: Verify the docs site is what gets published
+        run: |
+          test -f site/index.html
+          grep -q "styles.css" site/index.html
+          test ! -e site/_next
+
+      # Jekyll would otherwise drop any file or folder starting with an
+      # underscore. The file is committed; this only guards against its loss.
+      - name: Ensure Jekyll processing stays off
+        run: touch site/.nojekyll
 
       - uses: actions/configure-pages@v5
 
