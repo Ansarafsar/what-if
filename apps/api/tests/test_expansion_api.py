@@ -144,12 +144,93 @@ def test_expand_refuses_past_max_depth(client, bengaluru_scenario):
     assert "depth" in blocked.json()["detail"]
 
 
-def test_expand_rejects_a_fork_node(client, bengaluru_scenario):
+def test_expand_rejects_the_reality_root(client, bengaluru_scenario):
+    """Reality is the world you start in - there is nothing above it to fork."""
     graph = generated(client, bengaluru_scenario)
-    decision = next(n for n in graph["nodes"] if n["node_type"] == "decision")
+    root = next(n for n in graph["nodes"] if n["node_type"] == "reality")
 
-    response = client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{decision['id']}/expand")
+    response = client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{root['id']}/expand")
     assert response.status_code == 422
+
+
+class TestUnexpandedForkExpansion:
+    """The forks generation found but deliberately left unexpanded.
+
+    Storing them costs nothing; expanding all of them up front would multiply
+    the LLM calls before the user has looked at the graph. So the calls are
+    deferred to the click, and this is that click.
+    """
+
+    def _unexpanded(self, graph):
+        return [
+            n
+            for n in graph["nodes"]
+            if n["node_type"] == "decision" and n["metadata"].get("expanded") is False
+        ]
+
+    def test_generation_leaves_secondary_forks_unexpanded(self, client, bengaluru_scenario):
+        graph = generated(client, bengaluru_scenario)
+        assert self._unexpanded(graph), "fixture should leave at least one fork unexpanded"
+
+    def test_expanding_a_fork_creates_its_branches(self, client, bengaluru_scenario):
+        graph = generated(client, bengaluru_scenario)
+        fork = self._unexpanded(graph)[0]
+
+        response = client.post(
+            f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["created"] is True
+        branches = [n for n in body["nodes"] if n["node_type"] == "state"]
+        assert branches, "expansion must return the new branches"
+        # Children hang off the fork itself; no second decision node is made.
+        assert all(e["source_id"] == fork["id"] for e in body["edges"])
+
+    def test_response_carries_the_now_expanded_fork(self, client, bengaluru_scenario):
+        """The client merges by id, so a stale fork would stay dashed."""
+        graph = generated(client, bengaluru_scenario)
+        fork = self._unexpanded(graph)[0]
+
+        body = client.post(
+            f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand"
+        ).json()
+
+        returned = next(n for n in body["nodes"] if n["id"] == fork["id"])
+        assert returned["metadata"]["expanded"] is True
+
+    def test_expanded_fork_stops_reporting_as_unexpanded(self, client, bengaluru_scenario):
+        graph = generated(client, bengaluru_scenario)
+        fork = self._unexpanded(graph)[0]
+        client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand")
+
+        after = client.get(f"/api/v1/scenarios/{bengaluru_scenario}/graph").json()
+        reloaded = next(n for n in after["nodes"] if n["id"] == fork["id"])
+        assert reloaded["metadata"]["expanded"] is True
+
+    def test_expanding_a_fork_is_idempotent(self, client, bengaluru_scenario, mock_provider):
+        """Re-clicking a fork must not spend the calls a second time."""
+        graph = generated(client, bengaluru_scenario)
+        fork = self._unexpanded(graph)[0]
+        client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand")
+
+        before = len(mock_provider.calls)
+        again = client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand")
+
+        assert again.status_code == 200
+        assert again.json()["created"] is False
+        assert len(mock_provider.calls) == before, "cached fork expansion must not call the LLM"
+
+    def test_fork_expansion_skips_fork_detection(self, client, bengaluru_scenario, mock_provider):
+        """The question is already on disk, so re-detecting it would be waste."""
+        graph = generated(client, bengaluru_scenario)
+        fork = self._unexpanded(graph)[0]
+        before = [c for c in mock_provider.calls if "fork" in str(c).lower()]
+
+        client.post(f"/api/v1/scenarios/{bengaluru_scenario}/nodes/{fork['id']}/expand")
+
+        after = [c for c in mock_provider.calls if "fork" in str(c).lower()]
+        assert len(after) == len(before), "fork detection must not run again"
 
 
 def test_expand_unknown_node_404(client, bengaluru_scenario):

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GraphEdge, GraphNode } from "@/lib/api";
-import { computeLayout, NODE_SIZE } from "@/lib/graph-layout";
+import { computeLayout, NODE_SIZE, UNEXPANDED_DECISION_HEIGHT } from "@/lib/graph-layout";
 
 /** Positions are top-left corners; alignment is about centres. */
 const centerY = (
@@ -100,5 +100,36 @@ describe("graph layout beyond depth 2", () => {
     const partial = computeLayout(nodes, [...edges, edge("a2", "not-merged-yet")]);
     expect(Object.keys(partial)).toHaveLength(nodes.length);
     expect(partial["not-merged-yet"]).toBeUndefined();
+  });
+});
+
+describe("unexpanded fork sizing", () => {
+  /**
+   * An unexpanded fork renders an extra "Explore this fork" button, so it must
+   * be laid out taller than an expanded one - otherwise the button overlaps
+   * whatever dagre placed beneath it.
+   */
+  const forkNode = (id: string, expanded: boolean): GraphNode => ({
+    ...node(id, "decision"),
+    metadata: { expanded },
+  });
+
+  it("gives an unexpanded fork more vertical room than an expanded one", () => {
+    const siblings = [
+      node("root", "reality"),
+      forkNode("open", false),
+      forkNode("done", true),
+    ];
+    const layout = computeLayout(siblings, [edge("root", "open"), edge("root", "done")]);
+
+    const gap = Math.abs(layout.open.y - layout.done.y);
+    expect(gap).toBeGreaterThanOrEqual(UNEXPANDED_DECISION_HEIGHT);
+  });
+
+  it("leaves an expanded fork at the standard decision height", () => {
+    const pair = [node("root", "reality"), forkNode("done", true), node("x", "state")];
+    const layout = computeLayout(pair, [edge("root", "done"), edge("done", "x")]);
+    expect(layout.done).toBeDefined();
+    expect(UNEXPANDED_DECISION_HEIGHT).toBeGreaterThan(NODE_SIZE.decision.height);
   });
 });

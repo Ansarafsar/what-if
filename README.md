@@ -215,9 +215,13 @@ repair pass costs one LLM call per broken branch, not a full resample.
 Constraint violations route to revision and are only rejected once the iteration
 budget is spent; a hard constraint is never negotiable.
 
-Forks detected but not expanded are persisted as unexpanded decision nodes, so
-the alternatives the engine already found are one click away rather than thrown
-away.
+Forks detected but not expanded are persisted as unexpanded decision nodes and
+rendered with an **Explore this fork** button, so the alternatives the engine
+already found are one click away rather than thrown away. Expanding all of them
+during generation would multiply the LLM calls before you had even read the
+graph, so the calls are deferred to the click — and skipped entirely on a
+re-click, because the fork's question is already on disk and its branches are
+persisted.
 
 ### Architecture invariants
 
@@ -252,7 +256,12 @@ POST /api/v1/scenarios/{id}/compare                deterministic 2-branch diff
 
 ### Expansion and comparison
 
-`expand` is idempotent — a node that already has children returns them without an
+`expand` accepts either kind of node and does the right thing for each: on an
+**outcome** it generates that branch's own consequences, reasoning from the world
+that branch produced; on an **unexpanded fork** it fills in the missing outcome
+branches, reasoning from the same reality its expanded sibling did, and reusing
+the stored fork question instead of paying to re-detect it. Either way it is
+idempotent — a node that already has children returns them without an
 LLM call — and is depth-guarded by `ENGINE_MAX_DEPTH` (default 4). `compare` runs
 no LLM at all: it diffs two branches' effects and world states deterministically
 and returns per-dimension direction and magnitude, explicitly labelled *relative,

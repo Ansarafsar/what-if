@@ -20,6 +20,13 @@ export const NODE_SIZE: Record<GraphNode["node_type"], { width: number; height: 
 };
 
 /**
+ * An unexpanded fork carries an "Explore this fork" button the expanded one has
+ * no need for, so it needs the vertical room reserved for it - otherwise dagre
+ * lays it out at 96px and the button overlaps the node below.
+ */
+export const UNEXPANDED_DECISION_HEIGHT = 132;
+
+/**
  * Lay the possibility graph out left-to-right at arbitrary depth.
  *
  * The previous implementation clamped every node past depth 2 into the same
@@ -49,7 +56,11 @@ export function computeLayout(
     // Dagre writes the computed x/y back into the label object, so every node
     // needs its own copy - sharing one would leave siblings stacked.
     const size = NODE_SIZE[node.node_type] ?? NODE_SIZE.state;
-    graph.setNode(node.id, { ...size });
+    const height =
+      node.node_type === "decision" && node.metadata?.expanded === false
+        ? UNEXPANDED_DECISION_HEIGHT
+        : size.height;
+    graph.setNode(node.id, { ...size, height });
   }
   for (const edge of edges) {
     // An expansion response can reference a node the caller has not merged yet;

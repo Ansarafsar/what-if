@@ -85,12 +85,17 @@ function RealityNode({ data }: NodeProps) {
 }
 
 function DecisionNode({ data }: NodeProps) {
-  const { node } = data as unknown as NodeData;
+  const { node, expandable, expanded, expanding, onExpand } = data as unknown as NodeData;
   const unexplored = node.metadata.expanded === false;
+  // Only an unexpanded fork offers the button, and only until it has children.
+  const canExplore = expandable && !expanded;
   return (
     <div
       className={cn(
-        "h-[96px] w-[260px] overflow-hidden rounded-lg border-2 px-4 py-3 shadow-lg",
+        "w-[260px] overflow-hidden rounded-lg border-2 px-4 py-3 shadow-lg",
+        // Matches the height reserved in NODE_SIZE / UNEXPANDED_DECISION_HEIGHT,
+        // so the button never spills over the node dagre placed below.
+        canExplore ? "h-[132px]" : "h-[96px]",
         unexplored
           ? "border-dashed border-purple-400 bg-purple-500/5"
           : "border-purple-500 bg-purple-500/10"
@@ -104,11 +109,36 @@ function DecisionNode({ data }: NodeProps) {
       {/* A fork question is often a full sentence; clamping keeps the node at
           the height dagre laid out for it. Full text is in the detail sheet. */}
       <p
-        className="line-clamp-3 text-sm font-medium leading-snug"
+        className={cn(
+          "text-sm font-medium leading-snug",
+          // One line tighter when the button is present, to stay inside 132px.
+          canExplore ? "line-clamp-2" : "line-clamp-3"
+        )}
         title={node.metadata.question ?? node.description}
       >
         {node.metadata.question ?? node.description}
       </p>
+      {canExplore && (
+        <button
+          type="button"
+          data-testid={`expand-${node.id}`}
+          disabled={expanding}
+          onClick={(event) => {
+            event.stopPropagation();
+            onExpand(node.id);
+          }}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-purple-400 py-1 text-[11px] text-purple-600 transition-colors hover:bg-purple-500/10 disabled:opacity-60 dark:text-purple-400"
+        >
+          {expanding ? (
+            <>
+              <span className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+              Exploring…
+            </>
+          ) : (
+            <>+ Explore this fork</>
+          )}
+        </button>
+      )}
     </div>
   );
 }
@@ -231,7 +261,12 @@ export function PossibilityGraphView({
       selected: node.id === selectedId || node.id === compareId,
       data: {
         node,
-        expandable: node.node_type === "state",
+        // Outcome nodes fork into their own consequences; a fork the engine
+        // found but left unexpanded fills in its missing branches. Both spend
+        // LLM calls only on the click, which is why neither is expanded up front.
+        expandable:
+          node.node_type === "state" ||
+          (node.node_type === "decision" && node.metadata.expanded === false),
         expanded: hasChildren(graph, node.id),
         expanding: expanding.has(node.id),
         onExpand,

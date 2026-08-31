@@ -174,25 +174,28 @@ def get_graph(session: Session, scenario_id: UUID) -> PossibilityGraph | None:
     return graph_from_rows(nodes, edges)
 
 
+def node_to_schema(row):
+    """Convert one persisted node row to its API schema."""
+    from app.schemas.domain import Plausibility
+    from app.schemas.possibility import PossibilityNode as NodeSchema
+
+    return NodeSchema(
+        id=row.id,
+        scenario_id=row.scenario_id,
+        parent_id=row.parent_id,
+        node_type=row.node_type,
+        title=row.title,
+        description=row.description,
+        plausibility=Plausibility(row.plausibility) if row.plausibility else None,
+        score=row.score,
+        metadata=row.node_metadata or {},
+    )
+
+
 def graph_from_rows(nodes, edges) -> PossibilityGraph:
     from app.schemas.possibility import PossibilityEdge as EdgeSchema
-    from app.schemas.possibility import PossibilityNode as NodeSchema
-    from app.schemas.domain import Plausibility
 
-    node_schemas = [
-        NodeSchema(
-            id=row.id,
-            scenario_id=row.scenario_id,
-            parent_id=row.parent_id,
-            node_type=row.node_type,
-            title=row.title,
-            description=row.description,
-            plausibility=Plausibility(row.plausibility) if row.plausibility else None,
-            score=row.score,
-            metadata=row.node_metadata or {},
-        )
-        for row in nodes
-    ]
+    node_schemas = [node_to_schema(row) for row in nodes]
     edge_schemas = [
         EdgeSchema(
             id=row.id,

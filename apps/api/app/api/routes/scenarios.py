@@ -11,10 +11,10 @@ from app.api.deps import get_llm_provider, provider_is_mock
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.engines.comparison import compare_nodes
-from app.graphs.expansion import run_expansion
+from app.graphs.expansion import run_expansion, run_fork_expansion
 from app.graphs.generation import run_generation, stream_generation
 from app.llm.base import LLMError, LLMProvider
-from app.schemas.domain import DomainType, RealityState
+from app.schemas.domain import DomainType, ForkPoint, RealityState
 from app.services import scenario_service as service
 from app.services.pipeline import PossibilityPipeline
 
@@ -270,6 +270,110 @@ def get_node(scenario_id: UUID, node_id: UUID, session: Session = Depends(get_db
     }
 
 
+async def _expand_fork(
+    scenario_id: UUID,
+    node_id: UUID,
+    row,
+    metadata: dict,
+    settings,
+    session: Session,
+    provider: LLMProvider,
+) -> ExpandResponse:
+    """Generate the outcome branches for a fork left unexpanded at generation.
+
+    The fork's own question is reused rather than re-detected, so this costs the
+    candidate/consequence/critic calls but not a fresh fork-detection pass - and
+    it cannot drift onto a different question than the node the user clicked.
+    """
+    existing = service.get_children(session, node_id)
+    if existing:
+        node_ids = {c.id for c in existing}
+        edges = service.get_subtree_edges(session, scenario_id, node_ids | {node_id})
+        graph = service.graph_from_rows(list(existing), edges)
+        return ExpandResponse(
+            scenario_id=scenario_id,
+            node_id=node_id,
+            created=False,
+            nodes=[n.model_dump(mode="json") for n in graph.nodes],
+            edges=[e.model_dump(mode="json") for e in graph.edges],
+            mock=provider_is_mock(provider),
+        )
+
+    depth = row.depth or int(metadata.get("depth", 0) or 0)
+    # Branches land one level below the fork, where an outcome expansion adds two.
+    if depth + 1 > settings.engine_max_depth:
+        raise HTTPException(
+            status_code=422,
+            detail=f"maximum exploration depth {settings.engine_max_depth} reached",
+        )
+
+    question = metadata.get("question")
+    if not question:
+        raise HTTPException(
+            status_code=409,
+            detail="this fork has no stored question; regenerate the scenario to expand it",
+        )
+
+    # A sibling fork branches off the same world as the fork already expanded,
+    # so it reasons from the scenario's reality state - not from any outcome.
+    parent_state = service.get_latest_reality(session, scenario_id)
+    if parent_state is None:
+        raise HTTPException(
+            status_code=409,
+            detail="no reality state for this scenario; regenerate before expanding",
+        )
+
+    fork = ForkPoint(
+        id=str(metadata.get("fork_id") or node_id),
+        question=question,
+        description=row.description or question,
+        importance=float(metadata.get("importance", 0.5) or 0.5),
+    )
+
+    pipeline = PossibilityPipeline(provider)
+    try:
+        result = await run_fork_expansion(
+            pipeline,
+            scenario_id=scenario_id,
+            fork_node_id=node_id,
+            fork=fork,
+            parent_state=parent_state,
+            fork_depth=depth,
+            path_labels=list(metadata.get("path_labels") or []),
+        )
+    except LLMError as exc:
+        logger.error("fork expansion failed for node %s: %s", node_id, exc, exc_info=True)
+        service.record_failed_executions(session, scenario_id, pipeline.executions)
+        raise HTTPException(status_code=502, detail=f"expansion failed: {exc}") from exc
+    except ValueError as exc:
+        logger.warning("fork expansion rejected for node %s: %s", node_id, exc)
+        service.record_failed_executions(session, scenario_id, pipeline.executions)
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    service.record_executions(session, scenario_id, result.executions)
+    service.append_nodes(session, result.nodes, result.edges)
+    # Flips metadata.expanded, which is what the UI reads to stop drawing this
+    # node as an unexplored fork.
+    service.mark_expanded(session, row)
+
+    # The fork node ships back alongside its new children: the client merges by
+    # id, so without it the caller would keep the stale copy still claiming to
+    # be unexpanded and go on rendering the dashed "unexplored" styling.
+    updated_fork = service.node_to_schema(row)
+
+    return ExpandResponse(
+        scenario_id=scenario_id,
+        node_id=node_id,
+        created=True,
+        nodes=[
+            updated_fork.model_dump(mode="json"),
+            *(n.model_dump(mode="json") for n in result.nodes),
+        ],
+        edges=[e.model_dump(mode="json") for e in result.edges],
+        mock=provider_is_mock(provider),
+    )
+
+
 @router.post("/{scenario_id}/nodes/{node_id}/expand", response_model=ExpandResponse)
 async def expand_node(
     scenario_id: UUID,
@@ -286,13 +390,29 @@ async def expand_node(
     row = service.get_node(session, scenario_id, node_id)
     if row is None:
         raise HTTPException(status_code=404, detail="node not found")
-    if row.node_type != "state":
+    if row.node_type not in ("state", "decision"):
         raise HTTPException(
-            status_code=422, detail="only outcome nodes can be expanded; pick a branch, not a fork"
+            status_code=422,
+            detail="only outcome nodes and unexpanded forks can be expanded",
         )
 
     metadata = row.node_metadata or {}
     settings = get_settings()
+
+    # An unexpanded fork takes the other path: it was found during generation
+    # and deliberately left unexpanded to save the calls, so clicking it now
+    # spends them. Handled before the cache check because its children hang off
+    # the fork itself, not off a decision node it would have to create.
+    if row.node_type == "decision":
+        return await _expand_fork(
+            scenario_id=scenario_id,
+            node_id=node_id,
+            row=row,
+            metadata=metadata,
+            settings=settings,
+            session=session,
+            provider=provider,
+        )
 
     existing = service.get_children(session, node_id)
     if existing:
