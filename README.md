@@ -14,7 +14,7 @@ the surviving possibility graph.
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Pydantic%20v2-009688?logo=fastapi&logoColor=white)
 ![LangGraph](https://img.shields.io/badge/LangGraph-orchestration-1c3c3c)
-![Tests](https://img.shields.io/badge/tests-192%20api%20%C2%B7%2039%20web-brightgreen)
+![Tests](https://img.shields.io/badge/tests-230%20api%20%C2%B7%2039%20web-brightgreen)
 
 [Live docs & architecture](https://ansarafsar.github.io/what-if/) ·
 [Quick start](#quick-start) ·
@@ -60,13 +60,18 @@ not from the original reality.
 
 ## Quick start
 
+Docker is the only prerequisite. Nothing else needs to be installed, and **no API
+key is required to boot** — without one the stack serves canned demo data and
+labels every response as such.
+
 ```bash
-cp .env.example .env
-# For real reasoning set LLM_PROVIDER to openrouter, openai or anthropic,
-# plus that provider's API key.
-# Without them the stack runs on canned demo data and says so on every response.
-docker compose up --build
+git clone https://github.com/Ansarafsar/what-if.git
+cd what-if
+cp .env.example .env        # Windows PowerShell: copy .env.example .env
+docker compose up --build   # first build takes a few minutes
 ```
+
+Open **http://localhost:3000**.
 
 | Service | URL |
 |---|---|
@@ -75,27 +80,74 @@ docker compose up --build
 | Swagger docs | http://localhost:8000/docs |
 | PostgreSQL (pgvector image) | localhost:5432 |
 
-Database migrations run automatically when the API container starts.
+### Turning on real reasoning
+
+The demo fixture is one hardcoded scenario — to explore *your* situation you need
+a live provider. OpenRouter is the recommended default: it has free models, so a
+key costs nothing to try. Edit `.env`:
+
+```bash
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...                    # https://openrouter.ai/keys
+LLM_MODEL=deepseek/deepseek-chat-v3-0324:free
+```
+
+Then `docker compose up --build` again. [OpenAI and Anthropic](#llm-providers)
+are supported identically if you already have a key for either.
+
+### About the database
+
+You do not create, migrate, or seed anything by hand:
+
+- Postgres runs as the `whatif-db` service from the `pgvector/pgvector:pg16`
+  image — no local Postgres install needed.
+- The `vector` extension is enabled on first boot by
+  [`infra/postgres/init/01_extensions.sql`](infra/postgres/init/01_extensions.sql).
+- The schema lives in the repo as **Alembic migrations**
+  ([`apps/api/alembic/versions/`](apps/api/alembic/versions/)), and
+  [`entrypoint.sh`](apps/api/entrypoint.sh) runs `alembic upgrade head` every
+  time the API container starts. There is no `schema.sql` to import — the
+  migrations *are* the schema, so they can never drift from one.
+- Data persists in the `pgdata` Docker volume across restarts. To start from an
+  empty database: `docker compose down -v`.
 
 <details>
 <summary><b>Development without Docker</b></summary>
 
-Backend:
+Backend — [uv](https://docs.astral.sh/uv/) manages the virtualenv, the Python
+version and the locked dependencies:
 
 ```bash
 cd apps/api
-python -m venv .venv
-.venv\Scripts\pip install -e ".[dev]"     # POSIX: .venv/bin/pip ...
-.venv\Scripts\pytest
+uv sync --extra dev     # creates .venv, installs from uv.lock
+uv run pytest           # 230 tests, no database or API key needed
 ```
+
+`uv.lock` is committed, so `uv sync` reproduces the exact dependency set that CI
+runs. Run any command inside the environment with `uv run <cmd>` — activating the
+venv is optional.
+
+The test suite runs against the mock provider and an in-memory database, but the
+**dev server needs a real Postgres**. Easiest is to borrow the one from Compose
+and run only the API on the host:
+
+```bash
+docker compose up whatif-db -d          # Postgres on localhost:5432
+cd apps/api
+uv run alembic upgrade head             # apply the schema
+uv run uvicorn app.main:app --reload
+```
+
+`DATABASE_URL` in `.env.example` already points at `localhost:5432` with the
+default credentials, so this works unchanged.
 
 Frontend:
 
 ```bash
 cd apps/web
 npm install
-npm run dev        # dev server
-npm test           # vitest
+npm run dev        # dev server on :3000, expects the API on :8000
+npm test           # vitest - 39 tests
 npm run build      # production build + typecheck
 ```
 
@@ -238,37 +290,56 @@ Attempts are `LLM_MAX_RETRIES + 1` (default 3) and every retry is counted in
 
 ### Mock mode is loud
 
-With `LLM_PROVIDER=mock`, every scenario is answered from the canned Bengaluru
-fixture. The API logs a startup warning and every affected response carries
-`"mock": true`, which the UI renders as a banner — a deploy that forgets
-to set a live `LLM_PROVIDER` cannot quietly serve demo data at HTTP 200.
+`LLM_PROVIDER=mock` is what a fresh clone boots with, so the stack runs before
+you have signed up for anything — but it answers *every* scenario from the same
+canned Bengaluru fixture, whatever you type. The API logs a startup warning and
+every affected response carries `"mock": true`, which the UI renders as a banner,
+so a deploy that forgets to set a live `LLM_PROVIDER` cannot quietly serve demo
+data at HTTP 200. Set `openrouter` before judging the reasoning.
 
 ## LLM providers
 
-| Provider | Usage | Key |
-|---|---|---|
-| `mock` (default) | Deterministic Bengaluru demo responses; no key needed | — |
-| `openrouter` | Any model on OpenRouter, incl. `:free` models | `OPENROUTER_API_KEY` |
-| `openai` | OpenAI chat completions | `OPENAI_API_KEY` |
-| `anthropic` | Anthropic Messages API | `ANTHROPIC_API_KEY` |
+Set `LLM_PROVIDER` to one of four values. **`openrouter` is the recommended
+choice** — it reaches models from every vendor through one key and offers `:free`
+models, so it costs nothing to evaluate. `mock` is the built-in fallback used
+when no provider is configured, so the app always boots.
+
+| Provider | Endpoint | Model id (`LLM_MODEL`) | Key |
+|---|---|---|---|
+| `openrouter` **(recommended)** | `https://openrouter.ai/api/v1/chat/completions` | `deepseek/deepseek-chat-v3-0324:free` | `OPENROUTER_API_KEY` |
+| `openai` | `https://api.openai.com/v1/chat/completions` | `gpt-4o` | `OPENAI_API_KEY` |
+| `anthropic` | `https://api.anthropic.com/v1/messages` | `claude-opus-5` | `ANTHROPIC_API_KEY` |
+| `mock` | — (in-process fixture) | — | none |
+
+Only the selected provider's key is read; the others can stay blank.
 
 ```bash
-# OpenRouter
+# --- OpenRouter (recommended) ------------------------------------------------
+# Key: https://openrouter.ai/keys - free tier available, no card required.
 LLM_PROVIDER=openrouter
 OPENROUTER_API_KEY=sk-or-...
-LLM_MODEL=deepseek/deepseek-chat-v3-0324:free   # pick via scripts/list_openrouter_models.py
+LLM_MODEL=deepseek/deepseek-chat-v3-0324:free   # list current free models:
+                                                # python scripts/list_openrouter_models.py
 
-# OpenAI
+# --- OpenAI -------------------------------------------------------------------
+# Key: https://platform.openai.com/api-keys - paid, requires billing set up.
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 LLM_MODEL=gpt-4o
-# OPENAI_ORGANIZATION / OPENAI_PROJECT are optional scoping headers
+# OPENAI_ORGANIZATION / OPENAI_PROJECT - optional scoping headers, sent only if set.
 
-# Anthropic
+# --- Anthropic ----------------------------------------------------------------
+# Key: https://console.anthropic.com/settings/keys - paid, requires credits.
 LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 LLM_MODEL=claude-opus-5
+# ANTHROPIC_MAX_TOKENS=8192 - the Messages API requires max_tokens; a reply
+# truncated by too low a value fails schema validation rather than half-parsing.
 ```
+
+A key that is missing or names an unknown provider is refused with `503` at
+request time — the app never silently falls back to fixtures to hide a
+misconfiguration.
 
 All three live providers share one HTTP adapter
 (`apps/api/app/llm/http_provider.py`), so the retry ladder, `Retry-After`
@@ -297,8 +368,11 @@ branch coverage, branch diversity, constraint violations, domain routing, and
 stability under rewording.
 
 ```bash
-LLM_PROVIDER=openrouter python evals/harness/run.py      # measures the engine
-python evals/harness/run.py --provider mock              # smoke-tests the harness
+# measures the engine - needs a live provider and spends tokens
+LLM_PROVIDER=openrouter uv run --project apps/api python evals/harness/run.py
+
+# smoke-tests the harness itself, no key needed
+uv run --project apps/api python evals/harness/run.py --provider mock
 ```
 
 This is the only place reasoning quality is measured — tests running against

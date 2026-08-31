@@ -14,14 +14,14 @@ jobs:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install package with dev dependencies
-        run: pip install -e ".[dev]"
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+      - name: Install locked dependencies
+        run: uv sync --extra dev
       - name: Run tests
-        run: pytest
+        run: uv run pytest
 
   web:
     name: Web (lint, test, build)
@@ -49,20 +49,20 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
-          cache: pip
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
       - name: Install API package
         working-directory: apps/api
-        run: pip install -e ".[dev]"
+        run: uv sync --extra dev
       - name: Run eval harness
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           # Without a key the harness runs against the mock provider, which
           # exercises the scorers but reports no verdict.
           LLM_PROVIDER: ${{ secrets.OPENROUTER_API_KEY && 'openrouter' || 'mock' }}
-        run: python evals/harness/run.py --no-stability
+        run: uv run --project apps/api python evals/harness/run.py --no-stability
       - name: Upload eval report
         if: always()
         uses: actions/upload-artifact@v4
