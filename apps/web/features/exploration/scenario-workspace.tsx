@@ -243,13 +243,14 @@ export function ScenarioWorkspace({ scenarioId }: { scenarioId: string }) {
       )}
 
       {phase === "idle" && !graph && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-6 text-center">
           <Button size="lg" onClick={() => void runGeneration()} data-testid="generate-button">
             Map possibilities
           </Button>
-          <p className="text-xs text-muted-foreground">
+          <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
             Runs fork detection → candidate generation → consequence projection → adversarial
-            review → revision → ranking.
+            review → revision → ranking. Branches that fail review are regenerated, not
+            silently dropped.
           </p>
         </div>
       )}

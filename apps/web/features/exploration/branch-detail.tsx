@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { EvidenceChip } from "@/components/ui/evidence-chip";
 import type { GraphNode } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -258,52 +260,77 @@ function StateBody({ node }: { node: GraphNode }) {
 export function BranchDetailSheet({ node, onClose }: { node: GraphNode; onClose: () => void }) {
   const path = node.metadata.path_labels ?? [];
 
+  // The sheet covers the graph on small screens, so Escape and a click on the
+  // backdrop have to dismiss it - the ✕ was previously the only way out.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <aside
-      className="fixed inset-y-0 right-0 z-40 w-full max-w-md overflow-y-auto border-l bg-card p-5 shadow-2xl"
-      data-testid="branch-detail"
-      aria-label={`Details for ${node.title}`}
-    >
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          {path.length > 0 && (
-            <p className="mb-1 text-[11px] text-muted-foreground" data-testid="path-labels">
-              {path.join(" → ")}
-            </p>
-          )}
-          <h3 className="text-base font-semibold">{node.title}</h3>
+    <>
+      <div
+        className="fixed inset-0 z-30 bg-background/60 backdrop-blur-[2px] md:bg-transparent md:backdrop-blur-none"
+        onClick={onClose}
+        aria-hidden
+      />
+      <aside
+        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col border-l bg-card shadow-2xl"
+        data-testid="branch-detail"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Details for ${node.title}`}
+      >
+        <div className="sticky top-0 flex items-start justify-between gap-3 border-b bg-card/95 p-5 backdrop-blur">
+          <div className="min-w-0">
+            {path.length > 0 && (
+              <p
+                className="mb-1 truncate text-[11px] text-muted-foreground"
+                title={path.join(" → ")}
+                data-testid="path-labels"
+              >
+                {path.join(" → ")}
+              </p>
+            )}
+            <h3 className="text-base font-semibold">{node.title}</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close details"
+            className="shrink-0 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            ✕
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close details"
-          className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted"
-        >
-          ✕
-        </button>
-      </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {node.plausibility && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-            plausibility: {node.plausibility}
-          </span>
-        )}
-        {node.score !== null && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs tabular-nums text-secondary-foreground">
-            score {node.score.toFixed(2)}
-          </span>
-        )}
-        {typeof node.metadata.depth === "number" && (
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-            depth {node.metadata.depth}
-          </span>
-        )}
-      </div>
+        <div className="flex-1 overflow-y-auto p-5">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {node.plausibility && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                plausibility: {node.plausibility}
+              </span>
+            )}
+            {node.score !== null && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs tabular-nums text-secondary-foreground">
+                score {node.score.toFixed(2)}
+              </span>
+            )}
+            {typeof node.metadata.depth === "number" && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                depth {node.metadata.depth}
+              </span>
+            )}
+          </div>
 
-      {node.node_type === "state" && <StateBody node={node} />}
-      {node.node_type === "decision" && <DecisionBody node={node} />}
-      {node.node_type === "reality" && <RealityBody node={node} />}
-    </aside>
+          {node.node_type === "state" && <StateBody node={node} />}
+          {node.node_type === "decision" && <DecisionBody node={node} />}
+          {node.node_type === "reality" && <RealityBody node={node} />}
+        </div>
+      </aside>
+    </>
   );
 }

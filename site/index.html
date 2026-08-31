@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WHAT IF — Counterfactual Possibility Explorer</title>
+<meta name="description" content="Describe a real situation. WHAT IF extracts what is known, generates alternative trajectories, and lets you walk the possibility graph that survives." />
+<meta property="og:title" content="WHAT IF — Counterfactual Possibility Explorer" />
+<meta property="og:description" content="Fork reality. Walk the branches. Fork again. An LLM proposes; deterministic engines dispose." />
+<meta property="og:type" content="website" />
+<meta name="theme-color" content="#6d5ce7" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔀</text></svg>" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span> WHAT IF</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">☰</button>
+    <div class="nav-links" id="nav-links">
+      <a href="#how">How</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#failover">Reliability</a>
+      <a class="ghost" href="https://github.com/Ansarafsar/what-if">GitHub ↗</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+<div id="top"></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Counterfactual possibility explorer</p>
+    <h1>You are here.<br /><span class="accent">What if you weren't?</span></h1>
+
+    <p class="lede">
+      Describe a real situation. WHAT IF extracts what is actually known, generates alternative
+      trajectories, and lets you walk the possibility graph that survives.
+    </p>
+    <p class="disclaimer">
+      An LLM possibility is not a reality. The model proposes; the application validates, scores
+      and visualises. Nothing generated is presented as a prediction.
+    </p>
+
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/Ansarafsar/what-if">View on GitHub</a>
+      <a class="btn" href="#how">How it works</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THREE COMMITMENTS ============ -->
+<section class="band" id="premise">
+  <div class="wrap">
+    <div class="cards three">
+      <div class="card">
+        <h3>Facts, not vibes</h3>
+        <p>Every claim carries an evidence class. What was never stated becomes
+        <code>UNKNOWN</code> — never invented to fill a gap.</p>
+      </div>
+      <div class="card">
+        <h3>LLM proposes, code disposes</h3>
+        <p>Constraints, scoring, dedup and comparison are deterministic engines.
+        Same input, same graph.</p>
+      </div>
+      <div class="card">
+        <h3>Forkable, not final</h3>
+        <p>Every outcome stores the world it produced, so you fork again from inside it —
+        not from the original reality.</p>
+      </div>
+    </div>
+
+    <div class="bands" style="margin-top:2rem">
+      <span class="band-chip grounded"><span aria-hidden="true">●</span> GROUNDED</span>
+      <span class="band-chip inferred"><span aria-hidden="true">◐</span> INFERRED</span>
+      <span class="band-chip assumed"><span aria-hidden="true">◔</span> ASSUMED</span>
+      <span class="band-chip speculative"><span aria-hidden="true">○</span> SPECULATIVE</span>
+      <span class="band-chip unknown"><span aria-hidden="true">?</span> UNKNOWN</span>
+    </div>
+    <p class="note">
+      The band travels with the claim from extraction to the rendered node. Plausibility is
+      stated as high / medium / low — never as an invented probability percentage.
+    </p>
+  </div>
+</section>
+
+<!-- ============ HOW ============ -->
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>A paragraph becomes a walkable graph</h2>
+    <p class="section-lede">
+      The model is asked only for what a model is good at. Everything an ordinary algorithm can
+      decide is decided by ordinary code.
+    </p>
+
+    <ol class="flow">
+      <li>
+        <span class="n">1</span>
+        <b>Extract</b>
+        <span>Free text becomes a validated <code>RealityState</code> — events, constraints,
+        goals, and explicit gaps.</span>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <b>Route &amp; fork</b>
+        <span>One of nine domain modules supplies the causal variables and hard rules; decision
+        points are detected and ranked.</span>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <b>Project</b>
+        <span>Candidates become effects with a direction, magnitude and causal order, plus a
+        structured <code>state_delta</code>.</span>
+      </li>
+      <li>
+        <span class="n">4</span>
+        <b>Verify &amp; revise</b>
+        <span>Deterministic constraint checks, then an adversarial critic. Failures regenerate —
+        bounded at two iterations.</span>
+      </li>
+      <li>
+        <span class="n">5</span>
+        <b>Rank</b>
+        <span>Survivors are scored, deduplicated and beam-pruned into an acyclic graph.</span>
+      </li>
+      <li>
+        <span class="n">6</span>
+        <b>Explore</b>
+        <span>Every outcome stores its resulting world, so any node can be forked again from
+        that world.</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section class="band" id="architecture">
+  <div class="wrap">
+    <p class="eyebrow">Architecture</p>
+    <h2>A bounded revise loop</h2>
+    <p class="section-lede">
+      The part a linear pipeline could not express: critic verdicts and constraint violations
+      feed back into a targeted regeneration of <em>only the failing branches</em>.
+    </p>
+
+    <figure class="graph-figure">
+      <svg viewBox="0 0 880 290" role="img"
+           aria-label="Generation graph: detect forks, generate candidates, generate consequences, verify constraints, critique, partition; partition either revises back into generate consequences or accepts through rank into build graph.">
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none" />
+          </marker>
+        </defs>
+
+        <g class="edges" marker-end="url(#ah)">
+          <path d="M136,120 H160" />
+          <path d="M292,120 H316" />
+          <path d="M452,120 H476" />
+          <path d="M598,120 H622" />
+          <path d="M714,120 H738" />
+          <path d="M788,100 V52 H384 V92" stroke="var(--warn)" stroke-dasharray="5 4" color="var(--warn)" />
+          <path d="M788,140 V200 H680" stroke="var(--success)" color="var(--success)" />
+          <path d="M576,200 H560" stroke="var(--success)" color="var(--success)" />
+        </g>
+
+        <g class="nodes">
+          <g><rect x="20"  y="100" width="116" height="40" rx="9" /><text x="78"  y="125">detect_forks</text></g>
+          <g><rect x="160" y="100" width="132" height="40" rx="9" /><text x="226" y="118">generate</text><text x="226" y="133">candidates</text></g>
+          <g class="decision"><rect x="316" y="100" width="136" height="40" rx="9" /><text x="384" y="118">generate</text><text x="384" y="133">consequences</text></g>
+          <g><rect x="476" y="100" width="122" height="40" rx="9" /><text x="537" y="118">verify</text><text x="537" y="133">constraints</text></g>
+          <g><rect x="622" y="100" width="92" height="40" rx="9" /><text x="668" y="125">critique</text></g>
+          <g><rect x="738" y="100" width="100" height="40" rx="9" /><text x="788" y="125">partition</text></g>
+          <g class="accept"><rect x="576" y="180" width="100" height="40" rx="9" /><text x="626" y="205">rank</text></g>
+          <g class="decision"><rect x="420" y="180" width="136" height="40" rx="9" /><text x="488" y="205">build_graph</text></g>
+        </g>
+
+        <g class="labels">
+          <text x="586" y="42">revise — only the failing branches (max 2)</text>
+          <text x="812" y="168">accept</text>
+          <text x="488" y="243">→ Postgres possibility graph</text>
+        </g>
+      </svg>
+    </figure>
+
+    <p class="note" style="margin-top:1rem">
+      The revise edge re-enters at <code>generate_consequences</code>, so passing branches keep
+      the consequences and reviews they already have — a repair costs one LLM call per broken
+      branch, not a full resample.
+    </p>
+
+    <p class="callout" style="margin-top:1.75rem">
+      <strong>A hard constraint is never negotiable.</strong> When the iteration budget is spent,
+      branches the critic merely <em>disliked</em> are admitted. Branches breaching a hard
+      constraint are rejected. A constraint is not a preference.
+    </p>
+
+    <div class="cards two" style="margin-top:2rem">
+      <div class="card">
+        <h3>Each node knows its world</h3>
+        <p>A node can only be forked again if it knows which world it inhabits — otherwise the
+        children of <em>Accept the offer</em> reason from the original reality and contradict the
+        choice already made. So every outcome persists its <code>resulting_state</code>,
+        <code>depth</code> and <code>path_labels</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Exploring is cheap</h3>
+        <p>Expansion is idempotent — a node with children returns them without an LLM call — and
+        depth-guarded. <code>compare</code> runs no LLM at all: it diffs two branches'
+        effects and world states deterministically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RELIABILITY ============ -->
+<section id="failover">
+  <div class="wrap">
+    <p class="eyebrow">Reliability</p>
+    <h2>Every failure has a defined landing</h2>
+    <p class="section-lede">
+      The engine talks to a third-party model, sometimes behind a third-party proxy.
+      OpenRouter, OpenAI and Anthropic share one HTTP adapter, so everything below holds
+      for all three — only the wire format differs.
+    </p>
+
+    <p class="callout">
+      <strong>The failure that looks like success.</strong> OpenRouter fronts other providers, so
+      an upstream failure can arrive as <strong>HTTP 200 with the real status nested in the
+      body</strong>: <code>{"error": {"code": 429}}</code>. Retry logic that only reads
+      <code>response.status_code</code> misses these — the request "succeeded", the payload fails
+      to parse, and the caller sees a schema error instead of a rate limit that would have
+      cleared on the next attempt. The body is inspected, not just the status line.
+    </p>
+
+    <div class="cards pair">
+      <div class="card">
+        <h3>Transient faults back off</h3>
+        <p><code>429 / 502 / 503 / 504</code>, network errors, and in-body error codes retry on
+        an exponential ladder — 2s, 4s, 8s… capped at 30s — with 25% jitter, so per-branch calls
+        do not retry in lockstep and rate-limit themselves again. A <code>Retry-After</code>
+        header wins, up to a 120s ceiling.</p>
+      </div>
+      <div class="card">
+        <h3>Schema errors don't sleep</h3>
+        <p>Malformed JSON is repaired by feeding the validation error back to the model, with no
+        backoff — a schema error is the model's fault, not the server's. Still invalid after
+        repair, it is dropped before persistence; malformed output never reaches the database.</p>
+      </div>
+      <div class="card">
+        <h3>Demo data announces itself</h3>
+        <p>In mock mode every response carries <code>"mock": true</code> and the UI renders a
+        banner. A deploy that forgets to set a live <code>LLM_PROVIDER</code> cannot quietly
+        serve fixtures at HTTP 200; an unknown provider is refused with <code>503</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Failures leave a trace</h3>
+        <p>Every error path persists its <code>llm_executions</code> row <em>before</em> raising —
+        the session is rolled back when a request raises, so a row that is only flushed is
+        silently discarded. Retries, latency and tokens are all counted there.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MEASURED ============ -->
+<section class="band" id="evals">
+  <div class="wrap">
+    <p class="eyebrow">Measurement</p>
+    <h2>Quality is measured, not asserted</h2>
+    <p class="section-lede">
+      Unit tests running against a mock provider prove the plumbing works, but only ever re-read
+      the fixture they were seeded with. Reasoning quality is scored in one place: the eval
+      harness, against a live model.
+    </p>
+
+    <dl class="stats" style="border-top:0;padding-top:0">
+      <div><dt>Domain modules</dt><dd>9</dd></div>
+      <div><dt>Eval fixtures</dt><dd>21</dd></div>
+      <div><dt>API tests</dt><dd>192</dd></div>
+      <div><dt>Web tests</dt><dd>39</dd></div>
+    </dl>
+
+    <p class="note">
+      The harness scores extraction completeness, grounding, hallucination resistance, schema
+      validity, branch coverage and diversity, constraint violations, domain routing, and
+      stability under rewording.
+    </p>
+  </div>
+</section>
+
+<!-- ============ START ============ -->
+<section id="start">
+  <div class="wrap">
+    <p class="eyebrow">Run it</p>
+    <h2>Quick start</h2>
+    <p class="section-lede">
+      Docker Compose brings up the database, API and frontend. Migrations run on API start.
+    </p>
+
+    <div class="code-block">
+      <button class="copy" type="button" data-copy="#start-code">Copy</button>
+      <pre><code id="start-code">git clone https://github.com/Ansarafsar/what-if.git
+cd what-if
+cp .env.example .env      # set LLM_PROVIDER (openrouter|openai|anthropic) + that key
+docker compose up --build</code></pre>
+    </div>
+
+    <p class="note">
+      Frontend on <code>:3000</code>, API on <code>:8000</code>, Swagger at
+      <code>/docs</code>. Without a key the stack runs on canned demo data — and says so on
+      every response.
+    </p>
+
+    <div class="cta" style="margin-top:2rem">
+      <a class="btn primary" href="https://github.com/Ansarafsar/what-if">Repository</a>
+      <a class="btn" href="https://github.com/Ansarafsar/what-if/blob/main/docs/architecture.md">Architecture notes</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><strong>WHAT IF</strong> proposes structured possibilities — it does not predict, decide, or invent facts.</p>
+    <p class="muted">
+      <a href="https://github.com/Ansarafsar/what-if">github.com/Ansarafsar/what-if</a>
+    </p>
+  </div>
+</footer>
+
+<script src="script.js" defer></script>
+</body>
+</html>

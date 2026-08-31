@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.deps import LIVE_PROVIDERS
 from app.api.routes import api_router
 from app.core.config import get_settings
 from app.core.logging import setup_logging
@@ -16,13 +17,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    if settings.llm_provider != "openrouter":
+    # Only a live provider escapes the demo warning; an unrecognised value is
+    # refused per-request in deps.get_llm_provider rather than served fixtures.
+    if settings.llm_provider not in LIVE_PROVIDERS:
         logger.warning(
             "=" * 72
             + "\nLLM_PROVIDER=%r - every scenario will be answered from canned demo "
             "fixtures,\nnot from a model. Responses are marked \"mock\": true. Set "
-            "LLM_PROVIDER=openrouter\nand OPENROUTER_API_KEY for real reasoning.\n" + "=" * 72,
+            "LLM_PROVIDER to one of: %s\n(with that provider's API key) for real "
+            "reasoning.\n" + "=" * 72,
             settings.llm_provider,
+            ", ".join(sorted(LIVE_PROVIDERS)),
         )
     yield
 

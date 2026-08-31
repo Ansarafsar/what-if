@@ -57,7 +57,7 @@ def no_sleep(monkeypatch):
     async def fake_sleep(seconds):
         slept.append(seconds)
 
-    monkeypatch.setattr("app.llm.openrouter.asyncio.sleep", fake_sleep)
+    monkeypatch.setattr("app.llm.http_provider.asyncio.sleep", fake_sleep)
     return slept
 
 
@@ -88,7 +88,7 @@ def transport(monkeypatch):
         kwargs["transport"] = httpx.MockTransport(handler)
         return real_client(*args, **kwargs)
 
-    monkeypatch.setattr("app.llm.openrouter.httpx.AsyncClient", patched)
+    monkeypatch.setattr("app.llm.http_provider.httpx.AsyncClient", patched)
     return queue
 
 
@@ -267,6 +267,76 @@ class TestRetryLadder:
         with pytest.raises(LLMValidationError) as exc:
             await generate(OpenRouterProvider(settings()))
         assert "attempts" in str(exc.value)
+
+
+class TestUpstreamErrorInBody:
+    """OpenRouter proxies other providers. When one fails, the failure arrives
+    as HTTP 200 with the real status nested in the body, so reading only
+    response.status_code spends none of the retry budget on a rate limit.
+    """
+
+    # The exact body a live run returned.
+    LIVE_BODY = {"error": {"message": "Provider returned error", "code": 429}}
+
+    async def test_in_body_429_is_retried(self, transport, no_sleep):
+        transport.push(
+            httpx.Response(200, json=self.LIVE_BODY),
+            httpx.Response(200, json=completion(json.dumps({"answer": "ok"}))),
+        )
+        result = await generate(OpenRouterProvider(settings()))
+
+        assert result.data.answer == "ok"
+        assert result.retries == 1
+        assert_backoff(no_sleep[0], 2.0)
+
+    async def test_in_body_429_is_not_reported_as_a_malformed_payload(self, transport):
+        transport.push(*[httpx.Response(200, json=self.LIVE_BODY) for _ in range(3)])
+        with pytest.raises(LLMValidationError) as exc:
+            await generate(OpenRouterProvider(settings()))
+
+        message = str(exc.value)
+        assert "429" in message
+        assert "unexpected OpenRouter response shape" not in message
+
+    @pytest.mark.parametrize("code", [429, 502, 503, 504])
+    async def test_every_transient_code_in_body_is_retried(self, transport, code):
+        transport.push(
+            httpx.Response(200, json={"error": {"message": "upstream", "code": code}}),
+            httpx.Response(200, json=completion(json.dumps({"answer": "ok"}))),
+        )
+        assert (await generate(OpenRouterProvider(settings()))).retries == 1
+
+    async def test_string_code_is_understood(self, transport):
+        transport.push(
+            httpx.Response(200, json={"error": {"message": "upstream", "code": "429"}}),
+            httpx.Response(200, json=completion(json.dumps({"answer": "ok"}))),
+        )
+        assert (await generate(OpenRouterProvider(settings()))).retries == 1
+
+    async def test_non_transient_code_in_body_fails_without_retrying(self, transport, no_sleep):
+        transport.push(httpx.Response(200, json={"error": {"message": "bad key", "code": 401}}))
+        with pytest.raises(LLMValidationError) as exc:
+            await generate(OpenRouterProvider(settings()))
+
+        assert "401" in str(exc.value)
+        assert no_sleep == []
+        assert len(transport.requests) == 1
+
+    async def test_a_normal_completion_is_untouched(self, transport):
+        """A successful body has no error key and must not be misread."""
+        transport.push(httpx.Response(200, json=completion(json.dumps({"answer": "ok"}))))
+        assert (await generate(OpenRouterProvider(settings()))).data.answer == "ok"
+
+    async def test_a_plain_string_error_is_not_mistaken_for_a_code(self, transport, no_sleep):
+        """Our own non-JSON fallback stores `{"error": "<text>"}`, whose value is
+        a string with no code. It must fall through to the shape check rather
+        than being read as a retryable upstream status."""
+        transport.push(httpx.Response(200, text="not json at all"))
+        with pytest.raises(LLMValidationError) as exc:
+            await generate(OpenRouterProvider(settings()))
+
+        assert "unexpected OpenRouter response shape" in str(exc.value)
+        assert no_sleep == []  # not treated as a rate limit
 
 
 class TestNonRetryable:

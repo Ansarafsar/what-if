@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
 
     # LLM configuration
-    # provider: openrouter (live) | mock (deterministic, tests/demo)
+    # provider: openrouter | openai | anthropic (live) | mock (tests/demo)
     llm_provider: str = "mock"
     llm_model: str = "deepseek/deepseek-chat-v3-0324:free"
     llm_temperature_extraction: float = 0.2
@@ -34,6 +34,21 @@ class Settings(BaseSettings):
 
     openrouter_api_key: str | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
+    openai_api_key: str | None = None
+    openai_base_url: str = "https://api.openai.com/v1"
+    # Optional scoping headers; only sent when set.
+    openai_organization: str | None = None
+    openai_project: str | None = None
+
+    anthropic_api_key: str | None = None
+    anthropic_base_url: str = "https://api.anthropic.com/v1"
+    # Pinned rather than floating: an API version bump can change response
+    # shapes, and this adapter parses them.
+    anthropic_version: str = "2023-06-01"
+    # Required by the Messages API. Generous enough for a full possibility
+    # graph, since a truncated response fails schema validation.
+    anthropic_max_tokens: int = 8192
 
     # Possibility engine tuning
     engine_beam_width: int = 6

@@ -15,7 +15,9 @@ _MAX_VALUE_CHARS = 48
 _MAX_VALUE_WORDS = 3
 _HEDGE_PATTERN = re.compile(
     r"\b(unknown|unclear|depends|assumed|estimated|uncertain|tbd|n/?a|varies|"
-    r"potentially|possibly|if\s|may\b|might\b)",
+    r"potentially|possibly|if\s|may\b|might\b|"
+    # Deferral phrasings a model reaches for when it has no value yet.
+    r"to be (measured|determined|decided|confirmed)|pending)",
     re.IGNORECASE,
 )
 

@@ -32,6 +32,10 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       LLM_MODEL: ${LLM_MODEL:-deepseek/deepseek-chat-v3-0324:free}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_ORGANIZATION: ${OPENAI_ORGANIZATION:-}
+      OPENAI_PROJECT: ${OPENAI_PROJECT:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       - "8000:8000"
     depends_on:

@@ -298,6 +298,30 @@ class TestStateTransition:
     def test_prose_values_are_not_usable(self, value):
         assert not is_usable_value(value)
 
+    # Values a live model produced for the beta-launch scenario. A small model
+    # ignores the "scalars only" instruction often enough that the engine, not
+    # the prompt, has to be the guarantee.
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "increased (assumed bridge)",
+            "extended (amount unknown)",
+            "to be measured post-launch",
+            "to be measured from trial",
+            "experimental, multiple tiers tested",
+            "trial cohort from existing 40",
+        ],
+    )
+    def test_live_placeholder_values_are_rejected(self, value):
+        assert not is_usable_value(value)
+
+    @pytest.mark.parametrize(
+        "value", ["public", "beta only", "limited public", "private cohort test"]
+    )
+    def test_live_categorical_values_are_kept(self, value):
+        """These name a state, so dropping them would lose real information."""
+        assert is_usable_value(value)
+
     @pytest.mark.parametrize(
         "value", [24, 0, -3.5, True, False, "Bengaluru", "hybrid", [80000, 112000]]
     )

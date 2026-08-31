@@ -9,13 +9,14 @@ export interface PositionedNode {
 }
 
 /**
- * Rendered size per node type. Dagre needs real dimensions to avoid overlap,
- * and these match the fixed widths the node components use.
+ * Rendered size per node type. Dagre reserves exactly this much space, so the
+ * node components pin the same width AND height and clamp their text - a node
+ * that grows past its reserved slot overlaps the one laid out beneath it.
  */
 export const NODE_SIZE: Record<GraphNode["node_type"], { width: number; height: number }> = {
   reality: { width: 220, height: 80 },
   decision: { width: 260, height: 96 },
-  state: { width: 280, height: 132 },
+  state: { width: 280, height: 156 },
 };
 
 /**
@@ -34,10 +35,12 @@ export function computeLayout(
     rankdir: "LR",
     // Edge labels carry the branch text, so ranks need room for a label to sit
     // between two columns instead of printing across the next node.
-    ranksep: 190,
-    nodesep: 48,
-    marginx: 20,
-    marginy: 20,
+    ranksep: 240,
+    // Siblings need clear air between them; at 48 the shadows and the ring on a
+    // selected node ran into the neighbour below.
+    nodesep: 72,
+    marginx: 24,
+    marginy: 24,
   });
   graph.setDefaultEdgeLabel(() => ({}));
 
